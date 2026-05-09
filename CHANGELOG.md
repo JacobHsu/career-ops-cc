@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/JacobHsu/career-ops-cc/compare/career-ops-v1.7.0...career-ops-v1.8.0) (2026-05-09)
+
+
+### Features
+
+* career-ops ([15ca6ee](https://github.com/JacobHsu/career-ops-cc/commit/15ca6ee75ed8a6dffd55da2e82a48d37d3743463))
+
 ## [1.7.0](https://github.com/santifer/career-ops/compare/career-ops-v1.6.0...career-ops-v1.7.0) (2026-05-06)
 
 
