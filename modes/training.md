@@ -1,27 +1,29 @@
-# Modo: training — Evaluación de Formación
+# Mode: training -- Course or Certification Evaluation
 
-Para cada curso/cert que el candidato pregunte, evaluar 6 dimensiones:
+Evaluate a course, certification, bootcamp, or training program against the candidate's target roles.
 
-| Dimensión | Qué evalúa |
-|-----------|------------|
-| Alineación North Star | ¿Acerca o aleja del objetivo? |
-| Señal recruiter | ¿Qué piensan HMs al ver esto en un CV? |
-| Tiempo y esfuerzo | Semanas × horas/semana |
-| Coste de oportunidad | ¿Qué no puede hacer durante ese tiempo? |
-| Riesgos | ¿Contenido outdated? ¿Brand débil? ¿Demasiado básico? |
-| Entregable portfolio | ¿Produce un artefacto demostrable? |
+## Dimensions
 
-## Veredictos
+| Dimension | What To Evaluate |
+|-----------|------------------|
+| Target alignment | Does it move the candidate closer to target roles? |
+| Recruiter signal | How would recruiters or hiring managers read this on a CV? |
+| Time and effort | Calendar duration and hours per week |
+| Opportunity cost | What better proof could be built in the same time? |
+| Risk | Outdated content, weak brand, too basic, too theoretical |
+| Portfolio output | Does it produce a demonstrable artifact? |
 
-- **HACER** → plan de 4-12 semanas con entregables semanales y scoreboard
-- **NO HACER** → alternativa mejor con justificación
-- **HACER CON TIMEBOX** (máx X semanas) → plan condensado, solo lo esencial
+## Verdicts
 
-## Prioridad
+- `DO`: provide a 4-12 week plan with deliverables and a scoreboard.
+- `DO NOT`: recommend a better alternative with rationale.
+- `DO WITH TIMEBOX`: cap the effort and focus only on high-signal parts.
 
-Formación que mejore credibilidad en "production-grade AI":
-1. Evals y testing de LLMs
-2. Observability y monitoring
-3. Cost/reliability trade-offs
-4. AI governance y safety
-5. Enterprise AI architecture
+## Priority
+
+Prefer training that produces evidence:
+1. Real shipped project
+2. Strong portfolio artifact
+3. Recognized certification for the local market
+4. Interview-ready story with trade-offs
+5. Practical skills used in target job descriptions

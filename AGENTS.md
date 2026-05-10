@@ -172,6 +172,7 @@ Default modes are in `modes/` (English). Additional language-specific modes are 
 - **German (DACH market):** `modes/de/` — native German translations with DACH-specific vocabulary (13. Monatsgehalt, Probezeit, Kündigungsfrist, AGG, Tarifvertrag, etc.). Includes `_shared.md`, `angebot.md` (evaluation), `bewerben.md` (apply), `pipeline.md`.
 - **French (Francophone market):** `modes/fr/` — native French translations with France/Belgium/Switzerland/Luxembourg-specific vocabulary (CDI/CDD, convention collective SYNTEC, RTT, mutuelle, prévoyance, 13e mois, intéressement/participation, titres-restaurant, CSE, portage salarial, etc.). Includes `_shared.md`, `offre.md` (evaluation), `postuler.md` (apply), `pipeline.md`.
 - **Japanese (Japan market):** `modes/ja/` — native Japanese translations with Japan-specific vocabulary (正社員, 業務委託, 賞与, 退職金, みなし残業, 年俸制, 36協定, 通勤手当, 住宅手当, etc.). Includes `_shared.md`, `kyujin.md` (evaluation), `oubo.md` (apply), `pipeline.md`.
+- **Traditional Chinese (Taiwan market):** `modes/zh/` — Taiwan-focused Traditional Chinese modes for 104, CakeResume, Yourator, Meet.jobs, LinkedIn Taiwan, company career pages, and Taiwan-based foreign-company roles. Includes Taiwan-specific handling for monthly vs annual salary, guaranteed months, year-end bonus, profit sharing, equity, labor/health insurance, pension contribution, special leave, remote/hybrid work, commuting, SI/agency/dispatch/on-site risks, and Chinese/English mixed JDs. Includes `_shared.md`, `oferta.md` (evaluation), `apply.md`, `pipeline.md`, `scan.md`, `pdf.md`, `tracker.md`.
 
 **When to use German modes:** If the user is targeting German-language job postings, lives in DACH, or asks for German output. Either:
 1. User says "use German modes" → read from `modes/de/` instead of `modes/`
@@ -188,7 +189,9 @@ Default modes are in `modes/` (English). Additional language-specific modes are 
 2. User sets `language.modes_dir: modes/ja` in `config/profile.yml` → always use Japanese modes
 3. You detect a Japanese JD → suggest switching to Japanese modes
 
-**When NOT to:** If the user applies to English-language roles, even at French, German, or Japanese companies, use the default English modes.
+**When to use Traditional Chinese / Taiwan modes:** If the user is targeting Taiwan job postings, uses 104/CakeResume/Yourator/Meet.jobs/LinkedIn Taiwan, lives in Taiwan, asks for Traditional Chinese output, or sets `language.modes_dir: modes/zh` in `config/profile.yml`. For Chinese or mixed Chinese/English JDs, use `modes/zh/` by default. For pure English foreign-company JDs in Taiwan, use `modes/zh/` if Taiwan salary/work-mode interpretation matters; otherwise default English modes are acceptable.
+
+**When NOT to:** If the user applies to English-language roles outside these local markets and no local labor-market interpretation is needed, use the default English modes.
 
 ### Skill Modes
 

@@ -1,107 +1,108 @@
-# Mode: apply — Live Application Assistant
+# Mode: apply -- Live Application Assistant
 
-Interactive mode for when the candidate is filling out an application form in Chrome. It reads what is on the screen, loads the previous context of the job, and generates personalized responses for each form question.
+Interactive mode for when the candidate is filling out an application form.
+
+This mode reads the form context, loads the matching job report if available, and drafts personalized responses for copy-paste. Never submit the application for the user.
 
 ## Requirements
 
-- **Best with Playwright in visible mode**: In visible mode, the candidate sees the browser and Claude can interact with the page.
-- **Without Playwright**: the candidate shares a screenshot or pastes the questions manually.
+- Best with Playwright in visible mode so the user can see the browser.
+- Without Playwright, the user can share a screenshot or paste the form questions.
 
 ## Workflow
 
 ```text
-1. DETECT      → Read active Chrome tab (screenshot/URL/title)
-2. IDENTIFY    → Extract company + role from the page
-3. SEARCH      → Match against existing reports in reports/
-4. LOAD        → Read full report + Section G (if it exists)
-5. COMPARE     → Does the role on screen match the one evaluated? If it changed → notify
-6. ANALYZE     → Identify ALL visible form questions
-7. GENERATE    → For each question, generate a personalized response
-8. PRESENT     → Show formatted responses for copy-paste
+1. DETECT    -- Read active page, screenshot, URL, or pasted questions
+2. IDENTIFY  -- Extract company and role
+3. SEARCH    -- Match against existing reports in reports/
+4. LOAD      -- Read full report and draft answers if present
+5. COMPARE   -- Check whether the role changed
+6. ANALYZE   -- Identify visible form questions
+7. GENERATE  -- Draft personalized responses
+8. PRESENT   -- Show responses for copy-paste
 ```
 
-## Step 1 — Detect the job
+## Step 1 -- Detect the Job
 
-**With Playwright:** Take a snapshot of the active page. Read title, URL, and visible content.
+With Playwright:
+- Take a snapshot of the active page.
+- Read title, URL, and visible form content.
 
-**Without Playwright:** Ask the candidate to:
-- Share a screenshot of the form (Read tool can read images)
-- Or paste the form questions as text
-- Or say company + role so we can search for it
+Without Playwright, ask the candidate to:
+- Share a screenshot of the form.
+- Paste the form questions.
+- Provide company and role so the report can be found.
 
-## Step 2 — Identify and search for context
+## Step 2 -- Identify and Search for Context
 
-1. Extract company name and role title from the page
-2. Search in `reports/` by company name (case-insensitive grep)
-3. If there is a match → load the full report
-4. If there is a Section G → load previous draft answers as a base
-5. If there is NO match → notify and offer to run a quick auto-pipeline
+1. Extract company name and role title.
+2. Search `reports/` by company name.
+3. If a match exists, load the full report.
+4. If draft application answers already exist, use them as a base.
+5. If there is no match, notify the user and offer to run a quick auto-pipeline.
 
-## Step 3 — Detect changes in the role
+## Step 3 -- Detect Role Changes
 
-If the role on screen differs from the one evaluated:
-- **Notify the candidate**: "The role has changed from [X] to [Y]. Do you want me to re-evaluate or adapt the responses to the new title?"
-- **If adapt**: Adjust responses to the new role without re-evaluating
-- **If re-evaluate**: Execute full A-F evaluation, update report, regenerate Section G
-- **Update tracker**: Change role title in applications.md if applicable
+If the role on screen differs from the evaluated role:
+- Notify the candidate.
+- Ask whether to re-evaluate or adapt responses to the new title.
+- If adapting, keep the existing report context but adjust phrasing.
+- If re-evaluating, run the full evaluation and update the report.
 
-## Step 4 — Analyze form questions
+## Step 4 -- Analyze Form Questions
 
-Identify ALL visible questions:
-- Free text fields (cover letter, why this role, etc.)
-- Dropdowns (how did you hear, work authorization, etc.)
-- Yes/No (relocation, visa, etc.)
-- Salary fields (range, expectation)
-- Upload fields (resume, cover letter PDF)
+Identify all visible questions:
+- Free text fields
+- Dropdowns
+- Yes/No questions
+- Salary expectations
+- Work authorization
+- Relocation or remote/hybrid availability
+- Upload fields
 
-Classify each question:
-- **Already answered in Section G** → adapt the existing response
-- **New question** → generate response from the report + cv.md
+Classify:
+- Already answered in the report
+- New question requiring a fresh answer
 
-## Step 5 — Generate responses
+## Step 5 -- Generate Responses
 
-For each question, generate the response following:
+Use:
+1. Report context from Blocks B and F.
+2. CV proof points.
+3. Candidate profile and location policy.
+4. Specific language from the visible JD or form.
 
-1. **Report context**: Use proof points from block B, STAR stories from block F
-2. **Previous Section G**: If a draft response exists, use it as a base and refine
-3. **"I'm choosing you" tone**: Same auto-pipeline framework
-4. **Specificity**: Reference something specific from the JD visible on screen
-5. **career-ops proof point**: Include in "Additional info" if there is a field for it
+Rules:
+- Generate in the language of the form, English by default.
+- Keep responses direct and specific.
+- Do not invent experience.
+- Do not include phone number unless the form explicitly asks.
+- For salary, use `config/profile.yml`; if target is `TBD`, provide a flexible range-oriented answer and ask the user to confirm.
+- For work authorization, do not assume overseas authorization; use the profile text and mark uncertain details for user review.
 
-**Output format:**
+## Output Format
 
-```text
-## Responses for [Company] — [Role]
+```markdown
+## Responses for {Company} -- {Role}
 
-Based on: Report #NNN | Score: X.X/5 | Archetype: [type]
+Based on: Report #{num} | Score: {X.X}/5 | Archetype: {type}
 
----
+### 1. {Exact form question}
+> {Response ready for copy-paste}
 
-### 1. [Exact form question]
-> [Response ready for copy-paste]
-
-### 2. [Next question]
-> [Response]
-
-...
-
----
+### 2. {Next question}
+> {Response}
 
 Notes:
-- [Any observations about the role, changes, etc.]
-- [Personalization suggestions the candidate should review]
+- {Any user review points}
+- {Any mismatch or uncertainty}
 ```
 
-## Step 6 — Post-apply (optional)
+## Step 6 -- Post-Apply
 
-If the candidate confirms that they submitted the application:
-1. Update status in `applications.md` from "Evaluated" to "Applied"
-2. Update Section G of the report with the final responses
-3. Suggest next step: `/career-ops contacto` for LinkedIn outreach
+Only after the user confirms they submitted:
+1. Update existing tracker status from `Evaluated` to `Applied`.
+2. Add final responses to the report if useful.
+3. Suggest `contacto` mode for targeted outreach.
 
-## Scroll handling
-
-If the form has more questions than the visible ones:
-- Ask the candidate to scroll and share another screenshot
-- Or paste the remaining questions
-- Process in iterations until the entire form is covered
+Do not record drafts as submitted applications.

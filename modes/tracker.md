@@ -1,23 +1,34 @@
-# Modo: tracker — Tracker de Aplicaciones
+# Mode: tracker -- Application Tracker
 
-Lee y muestra `data/applications.md`.
+Read and summarize `data/applications.md`.
 
-**Formato del tracker:**
+Tracker format:
+
 ```markdown
-| # | Fecha | Empresa | Rol | Score | Estado | PDF | Report |
+| # | Date | Company | Role | Score | Status | PDF | Report | Notes |
 ```
 
-Estados posibles: `Evaluada` → `Aplicado` → `Respondido` → `Contacto` → `Entrevista` → `Oferta` / `Rechazada` / `Descartada` / `NO APLICAR`
+Canonical states come from `templates/states.yml`:
 
-- `Aplicado` = el candidato envió su candidatura
-- `Respondido` = Un recruiter/empresa contactó y el candidato respondió (inbound)
-- `Contacto` = El candidato contactó proactivamente a alguien de la empresa (outbound, ej: LinkedIn power move)
+- `Evaluated`
+- `Applied`
+- `Responded`
+- `Interview`
+- `Offer`
+- `Rejected`
+- `Discarded`
+- `SKIP`
 
-Si el usuario pide actualizar un estado, editar la fila correspondiente.
+Rules:
+- Do not add new rows directly to `applications.md`; use tracker-addition TSV files and `node merge-tracker.mjs`.
+- It is allowed to edit existing rows to update status or notes.
+- Status must be exactly one canonical English state.
+- No markdown, dates, or extra notes in the status field.
 
-Mostrar también estadísticas:
-- Total de aplicaciones
-- Por estado
-- Score promedio
-- % con PDF generado
-- % con report generado
+When the user asks for tracker status, show:
+- Total applications
+- Count by status
+- Average score
+- Percent with PDF
+- Percent with report
+- Highest-priority next actions

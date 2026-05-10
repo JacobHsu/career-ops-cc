@@ -1,30 +1,34 @@
-# Modo: project — Evaluación de Proyecto Portfolio
+# Mode: project -- Portfolio Project Evaluation
 
-Scoring 6 dimensiones (1-5):
+Evaluate a portfolio project idea against the candidate's target roles.
 
-| Dimensión | Peso | 5 = ... | 1 = ... |
-|-----------|------|---------|---------|
-| Señal para roles target | 25% | Directamente demuestra skill del JD | No relacionado |
-| Unicidad | 20% | Nadie ha hecho esto | Todo el mundo lo tiene |
-| Demo-ability | 20% | Live demo en 2 min | Solo código, no visual |
-| Potencial de métricas | 15% | Métricas claras (latency, cost, accuracy) | Sin métricas posibles |
-| Tiempo a MVP | 10% | 1 semana | 3+ meses |
-| Potencial de historia STAR | 10% | Historia rica con trade-offs | Solo implementación |
+## Scoring
 
-## Requisitos de "Interview Pack"
+Score each dimension from 1-5:
 
-Para cada proyecto aprobado:
-1. **One-pager**: producto + arquitectura + métricas + plan de evaluación
-2. **Demo**: URL live o walkthrough grabado de 2 min
-3. **Postmortem**: qué funcionó, qué no, mitigaciones
+| Dimension | Weight | 5 Means | 1 Means |
+|-----------|--------|---------|---------|
+| Target-role signal | 25% | Directly proves a target-role skill | Unrelated |
+| Uniqueness | 20% | Distinctive and memorable | Generic tutorial project |
+| Demo quality | 20% | Clear live demo in 2 minutes | Code-only, hard to inspect |
+| Metrics potential | 15% | Clear metrics such as latency, cost, usage, accuracy | No measurable outcome |
+| Time to MVP | 10% | One week | Three months or more |
+| STAR story potential | 10% | Rich trade-offs and decisions | Only implementation detail |
 
-## Plan 80/20
+## Interview Pack Requirements
 
-- Semana 1 → MVP con métrica core
-- Semana 2 → polish + interview pack
+For each approved project, define:
+1. One-pager: product, architecture, metrics, evaluation plan.
+2. Demo: live URL or 2-minute recorded walkthrough.
+3. Postmortem: what worked, what failed, mitigations.
 
-## Veredictos
+## 80/20 Plan
 
-- **CONSTRUIR** → plan con milestones semanales
-- **SKIP** → por qué y qué hacer en su lugar
-- **PIVOTAR A [alternativa]** → variante más impactante
+- Week 1: MVP with one core metric.
+- Week 2: polish, documentation, and interview pack.
+
+## Verdicts
+
+- `BUILD`: provide weekly milestones.
+- `SKIP`: explain why and what to do instead.
+- `PIVOT TO [alternative]`: describe the stronger variant.

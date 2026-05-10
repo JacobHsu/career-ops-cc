@@ -1,53 +1,60 @@
-# Modo: contacto -- LinkedIn Power Move
+# Mode: contacto -- LinkedIn Outreach
 
-1. **Identificar targets** via WebSearch:
-   - Hiring manager del equipo
-   - Recruiter asignado
-   - 2-3 peers del equipo (gente con rol similar)
-   - Interviewer (si el candidato ya tiene entrevista programada)
+Use this mode to find useful contacts and draft short LinkedIn messages.
 
-2. **Clasificar tipo de contacto** -- preguntar al candidato o inferir del contexto:
-   - **Recruiter** -- persona cuyo rol es talent acquisition, sourcing, o recruiting
-   - **Hiring Manager** -- la persona que lidera el equipo que contrata
-   - **Peer** -- alguien con un rol similar en el equipo (referral indirecto)
-   - **Interviewer** -- alguien que va a entrevistar al candidato (fecha conocida)
+## Step 1 -- Identify Targets
 
-3. **Seleccionar target primario**: la persona que mas se beneficiaria de que el candidato estuviera alli
+Use WebSearch or available company context to find:
+- Recruiter or talent partner
+- Hiring manager
+- 2-3 likely peers on the team
+- Interviewer, if an interview is already scheduled
 
-4. **Generar mensaje** con framework de 3 frases adaptado al tipo de contacto:
+## Step 2 -- Classify Contact Type
 
-   ### Recruiter
-   - **Frase 1 (Fit)**: Criterios de match directo -- rol, experiencia relevante, disponibilidad o ubicacion
-   - **Frase 2 (Prueba)**: Dato que responda sus preguntas de screening antes de que las hagan (ej: "5 years building ML pipelines, currently in Berlin, available immediately")
-   - **Frase 3 (CTA)**: "Happy to share my CV if this aligns with what you're looking for"
+Classify the primary target:
+- `Recruiter`: talent acquisition, sourcing, recruiting
+- `Hiring Manager`: leads the hiring team
+- `Peer`: similar role, possible indirect referral
+- `Interviewer`: known upcoming interviewer
 
-   ### Hiring Manager
-   - **Frase 1 (Gancho)**: Reto especifico que enfrenta su equipo (extraido del JD, company blog, o noticias)
-   - **Frase 2 (Prueba)**: Mayor logro cuantificable del candidato que demuestre que ha resuelto problemas similares
-   - **Frase 3 (CTA)**: "Would love to hear how your team is approaching [reto especifico]"
+Choose the person most likely to benefit from understanding the candidate's fit.
 
-   ### Peer (referral)
-   - **Frase 1 (Interes)**: Referencia genuina a su trabajo -- blog post, charla, proyecto open source, o publicacion
-   - **Frase 2 (Conexion)**: Algo que el candidato esta haciendo en el mismo espacio (NO un pitch de empleo)
-   - **Frase 3 (CTA)**: "I've been working on similar problems at [empresa], would love to hear your take on [tema]"
-   - **Nota**: NO pedir empleo. La referral ocurre naturalmente si la conversacion fluye.
+## Step 3 -- Draft Message
 
-   ### Interviewer (pre-entrevista)
-   - **Frase 1 (Research)**: Referencia a algo especifico de su trabajo o trayectoria
-   - **Frase 2 (Contexto)**: Conexion ligera con la experiencia del candidato en ese tema
-   - **Frase 3 (CTA)**: "Looking forward to our conversation on [fecha]"
-   - **Nota**: Tono ligero, no desesperado. El objetivo es que sepan que te preparaste.
+Keep LinkedIn connection messages under 300 characters.
 
-5. **Versiones**:
-   - EN (default)
-   - ES (si empresa espanola)
+### Recruiter
 
-6. **Targets alternativos** con justificacion de por que son buenos second choices
+1. Fit: role, relevant experience, location or availability.
+2. Proof: one concrete signal that answers screening questions early.
+3. CTA: offer to share CV or discuss fit.
 
-**Reglas del mensaje:**
-- Maximo 300 caracteres (LinkedIn connection request limit)
-- NO corporate-speak
-- NO "I'm passionate about..."
-- Algo que haga que quieran responder
-- NUNCA compartir telefono
-- El tipo de contacto cambia el ENFASIS, no la estructura
+### Hiring Manager
+
+1. Hook: a specific team challenge from the JD, blog, or product.
+2. Proof: one relevant project or achievement.
+3. CTA: ask how the team is approaching that challenge.
+
+### Peer
+
+1. Genuine reference to their work, team, or domain.
+2. Connection to something the candidate has built.
+3. CTA: ask for their perspective.
+
+Do not ask for a job directly in peer outreach.
+
+### Interviewer
+
+1. Reference something specific from their work or background.
+2. Light connection to the candidate's experience.
+3. Close with looking forward to the scheduled conversation.
+
+## Rules
+
+- No corporate-speak.
+- No "passionate about".
+- Do not share phone number.
+- Prefer one specific proof point over broad claims.
+- Generate in the language of the job/company context, English by default.
+- Provide 2-3 alternative targets if available and explain why each is useful.

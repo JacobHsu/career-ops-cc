@@ -1,47 +1,46 @@
-# Modo: deep — Deep Research Prompt
+# Mode: deep -- Company Research Prompt
 
-Genera un prompt estructurado para Perplexity/Claude/ChatGPT con 6 ejes:
+Generate a structured research prompt for Perplexity, Claude, ChatGPT, or manual research.
 
+Use this when the user wants deeper company research before applying, interviewing, or negotiating.
+
+## Output
+
+```markdown
+## Deep Research: [Company] -- [Role]
+
+Context: I am evaluating an application for [role] at [company]. I need actionable interview and application intelligence.
+
+### 1. Product and Strategy
+- What products, platforms, or business lines matter most right now?
+- What recent launches, pivots, partnerships, or acquisitions happened in the last 6-12 months?
+- What business problems is this role likely tied to?
+
+### 2. Technology and Engineering
+- What stack, frameworks, cloud providers, or architecture choices are visible?
+- Does the company publish engineering blogs, talks, papers, or open-source projects?
+- What technical constraints or scaling challenges are likely?
+
+### 3. Hiring and Interview Process
+- What interview stages are reported for this company and role family?
+- What technical topics appear repeatedly?
+- What are common candidate complaints or praise points?
+
+### 4. Culture and Work Style
+- Remote, hybrid, or office-first?
+- How do teams ship and make decisions?
+- What values does the company screen for?
+
+### 5. Compensation and Market Context
+- What compensation ranges are visible from credible sources?
+- How does this compare with the candidate's target market and location?
+- For Taiwan roles, distinguish monthly salary, annual package, guaranteed months, bonus, equity, and benefits.
+
+### 6. Candidate Angle
+Given my profile in `cv.md` and `config/profile.yml`:
+- What value do I bring to this team?
+- Which projects are most relevant?
+- What story should I lead with in interviews?
 ```
-## Deep Research: [Empresa] — [Rol]
 
-Contexto: Estoy evaluando una candidatura para [rol] en [empresa]. Necesito información accionable para la entrevista.
-
-### 1. Estrategia AI
-- ¿Qué productos/features usan AI/ML?
-- ¿Cuál es su stack de AI? (modelos, infra, tools)
-- ¿Tienen blog de engineering? ¿Qué publican?
-- ¿Qué papers o talks han dado sobre AI?
-
-### 2. Movimientos recientes (últimos 6 meses)
-- ¿Contrataciones relevantes en AI/ML/product?
-- ¿Acquisitions o partnerships?
-- ¿Product launches o pivots?
-- ¿Rondas de funding o cambios de liderazgo?
-
-### 3. Cultura de engineering
-- ¿Cómo shipean? (cadencia de deploy, CI/CD)
-- ¿Mono-repo o multi-repo?
-- ¿Qué lenguajes/frameworks usan?
-- ¿Remote-first o office-first?
-- ¿Glassdoor/Blind reviews sobre eng culture?
-
-### 4. Retos probables
-- ¿Qué problemas de scaling tienen?
-- ¿Reliability, cost, latency challenges?
-- ¿Están migrando algo? (infra, models, platforms)
-- ¿Qué pain points menciona la gente en reviews?
-
-### 5. Competidores y diferenciación
-- ¿Quiénes son sus main competitors?
-- ¿Cuál es su moat/diferenciador?
-- ¿Cómo se posicionan vs competencia?
-
-### 6. Ángulo del candidato
-Dado mi perfil (read from cv.md and profile.yml for specific experience):
-- ¿Qué valor único aporto a este equipo?
-- ¿Qué proyectos míos son más relevantes?
-- ¿Qué historia debería contar en la entrevista?
-```
-
-Personalizar cada sección con el contexto específico de la oferta evaluada.
+Personalize each section with the specific role and company context.
