@@ -15,7 +15,12 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BATCH_DIR="$SCRIPT_DIR"
 INPUT_FILE="$BATCH_DIR/batch-input.tsv"
 STATE_FILE="$BATCH_DIR/batch-state.tsv"
-PROMPT_FILE="$BATCH_DIR/batch-prompt.md"
+# Prefer localized prompt if available (e.g. batch-prompt.zh.md for Taiwan)
+if [[ -f "$BATCH_DIR/batch-prompt.zh.md" ]]; then
+  PROMPT_FILE="$BATCH_DIR/batch-prompt.zh.md"
+else
+  PROMPT_FILE="$BATCH_DIR/batch-prompt.md"
+fi
 LOGS_DIR="$BATCH_DIR/logs"
 TRACKER_DIR="$BATCH_DIR/tracker-additions"
 REPORTS_DIR="$PROJECT_DIR/reports"
@@ -321,13 +326,25 @@ process_offer() {
   report_num=$(reserve_report_num "$id" "$url" "$started_at" "$retries")
   local date
   date=$(date +%Y-%m-%d)
-  local jd_file="/tmp/batch-jd-${id}.txt"
+  # Use pre-fetched JD from notes column if available, else fallback path
+  local jd_file
+  if [[ -n "$notes" && -f "$notes" ]]; then
+    jd_file="$notes"
+  else
+    jd_file="/tmp/batch-jd-${id}.txt"
+  fi
 
-  echo "--- Processing offer #$id: $url (report $report_num, attempt $((retries + 1)))"
+  # Color codes
+  local C_CYAN='\033[0;36m' C_YELLOW='\033[0;33m' C_GREEN='\033[0;32m'
+  local C_RED='\033[0;31m' C_BOLD='\033[1m' C_DIM='\033[2m' C_RESET='\033[0m'
+
+  local short_url="${url##*/}"
+  printf "${C_BOLD}${C_CYAN}┌─ #%s${C_RESET}  report ${C_YELLOW}%s${C_RESET}  ${C_DIM}%s${C_RESET}\n" \
+    "$id" "$report_num" "$short_url"
 
   # Build the prompt with placeholders replaced
   local prompt
-  prompt="Procesa esta oferta de empleo. Ejecuta el pipeline completo: evaluación A-F + report .md + PDF + tracker line."
+  prompt="處理這筆職缺。執行完整評估流程：A-G 評估 + report .md + tracker TSV。"
   prompt="$prompt URL: $url"
   prompt="$prompt JD file: $jd_file"
   prompt="$prompt Report number: $report_num"
@@ -355,13 +372,28 @@ process_offer() {
     -e "s|{{ID}}|${esc_id}|g" \
     "$PROMPT_FILE" > "$resolved_prompt"
 
-  # Launch claude -p worker (uses default model from Claude Max subscription)
+  # Launch claude -p worker with spinner
   local exit_code=0
+  local spin_chars='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local spin_i=0
+  local elapsed=0
+
   claude -p \
     --dangerously-skip-permissions \
     --append-system-prompt-file "$resolved_prompt" \
     "$prompt" \
-    > "$log_file" 2>&1 || exit_code=$?
+    > "$log_file" 2>&1 &
+  local worker_pid=$!
+
+  while kill -0 "$worker_pid" 2>/dev/null; do
+    local spin_char="${spin_chars:$((spin_i % ${#spin_chars})):1}"
+    printf "\r${C_CYAN}│${C_RESET}  ${C_YELLOW}%s${C_RESET}  評估中… %ds" "$spin_char" "$elapsed"
+    sleep 1
+    elapsed=$((elapsed + 1))
+    spin_i=$((spin_i + 1))
+  done
+  wait "$worker_pid" || exit_code=$?
+  printf "\r\033[K"  # clear spinner line
 
   # Cleanup resolved prompt
   rm -f "$resolved_prompt"
@@ -388,13 +420,16 @@ process_offer() {
     fi
 
     update_state "$id" "$url" "completed" "$started_at" "$completed_at" "$report_num" "$score" "-" "$retries"
-    echo "    ✅ Completed (score: $score, report: $report_num)"
+    local score_display=""
+    [[ "$score" != "-" ]] && score_display="  score ${C_BOLD}${score}/5${C_RESET}"
+    printf "${C_GREEN}└─ ✅ 完成${C_RESET}  report ${C_YELLOW}%s${C_RESET}${score_display}  ${C_DIM}%ds${C_RESET}\n" \
+      "$report_num" "$elapsed"
   else
     retries=$((retries + 1))
     local error_msg
     error_msg=$(tail -5 "$log_file" 2>/dev/null | tr '\n' ' ' | cut -c1-200 || echo "Unknown error (exit code $exit_code)")
     update_state "$id" "$url" "failed" "$started_at" "$completed_at" "$report_num" "-" "$error_msg" "$retries"
-    echo "    ❌ Failed (attempt $retries, exit code $exit_code)"
+    printf "${C_RED}└─ ❌ 失敗${C_RESET}  exit %s  ${C_DIM}%s${C_RESET}\n" "$exit_code" "${error_msg:0:80}"
   fi
 }
 
@@ -436,12 +471,15 @@ print_summary() {
     esac
   done < "$STATE_FILE"
 
-  echo "Total: $total | Completed: $completed | Failed: $failed | Pending: $pending"
+  local C_GREEN='\033[0;32m' C_RED='\033[0;31m' C_YELLOW='\033[0;33m'
+  local C_BOLD='\033[1m' C_RESET='\033[0m'
+  printf "Total ${C_BOLD}%s${C_RESET}  ${C_GREEN}✅ %s${C_RESET}  ${C_RED}❌ %s${C_RESET}  ⏳ %s\n" \
+    "$total" "$completed" "$failed" "$pending"
 
   if (( score_count > 0 )); then
     local avg
     avg=$(echo "scale=1; $score_sum / $score_count" | bc 2>/dev/null || echo "N/A")
-    echo "Average score: $avg/5 ($score_count scored)"
+    printf "平均分數 ${C_BOLD}${C_YELLOW}%s/5${C_RESET}  （%s 筆已評分）\n" "$avg" "$score_count"
   fi
 }
 

@@ -17,6 +17,9 @@
     "scan": "node scan.mjs",
     "scan-104": "node scan-104.mjs",
     "goodjob": "node goodjob.mjs",
+    "batch104": "node batch104.mjs",
+    "batch104:test": "node batch104.mjs --max 1",
+    "batch:reset": "node batch-reset.mjs",
     "gemini:eval": "node gemini-eval.mjs"
   },
   "keywords": [

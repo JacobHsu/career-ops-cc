@@ -20,6 +20,7 @@
 | `npm run scan` | `scan.mjs` | 零 token 平台掃描器（CakeResume、Ashby、Greenhouse…）|
 | `npm run scan-104` | `scan-104.mjs` | 零 token 104.com.tw 直接 API 掃描器 |
 | `npm run goodjob` | `goodjob.mjs` | 從 goodjob.life 批次抓取面試心得與薪資概況 |
+| `npm run batch104` | `batch104.mjs` | 批次評估 pipeline.md 的 104 職缺（pipeline-to-batch + batch-runner）|
 
 ---
 
@@ -259,3 +260,51 @@ npm run goodjob -- --max-age-days 60             # 自訂快取天數（預設 3
 ```
 
 **退出碼：** `0` 完成（部分失敗不影響退出碼），`1` 致命錯誤。
+
+---
+
+## batch104
+
+將 `data/pipeline.md` 的待處理 104 職缺批次評估。整合兩個步驟：`pipeline-to-batch.mjs`（讀取 pending 項目 + 預抓 JD + 寫入 `batch/batch-input.tsv`）與 `batch/batch-runner.sh`（依序啟動 `claude -p` worker 評估）。
+
+Windows 環境下自動尋找 Git Bash，無需手動設定。
+
+```bash
+npm run batch104                           # 全部 pending 職缺
+npm run batch104 -- --max 20              # 只取前 20 筆
+npm run batch104 -- --dry-run             # 預覽（不執行評估）
+npm run batch104 -- --max 10 --parallel 2 # 10 筆，2 個 worker 並行
+npm run batch104 -- --append              # 附加至現有 batch-input.tsv
+```
+
+**執行流程：**
+
+1. **Step 1 — pipeline-to-batch.mjs**
+   - 讀取 `data/pipeline.md` 的 `- [ ]` 待處理項目
+   - 跳過 `batch/batch-state.tsv` 中已完成的 URL
+   - 透過 `https://www.104.com.tw/job/ajax/content/{jobNo}` 預抓 JD 文字
+   - 儲存至 `batch/jds/{id}.txt`
+   - 寫入 `batch/batch-input.tsv`（notes 欄位填入 JD 檔案路徑）
+
+2. **Step 2 — batch-runner.sh**
+   - 讀取 `batch-input.tsv`，對每筆職缺指派報告編號
+   - 啟動 `claude -p` worker，以 `batch/batch-prompt.zh.md` 作為 system prompt
+   - Worker 讀取 cv.md、profile、modes/_profile.md、JD 文字，執行 A-G 評估
+
+3. **Step 3 — Worker 輸出**
+   - 評估報告：`reports/{###}-{slug}-{date}.md`
+   - Tracker TSV：`batch/tracker-additions/{id}.tsv`
+
+4. **Step 4 — merge-tracker.mjs（自動）**
+   - 合併 tracker TSV → `data/applications.md`
+
+**Batch 選項（進階，直接執行腳本）：**
+
+若需要 `--parallel`、`--retry-failed`、`--start-from` 等選項：
+
+```bash
+node pipeline-to-batch.mjs --max 20
+./batch/batch-runner.sh --parallel 2 --retry-failed
+```
+
+**退出碼：** `0` 完成，`1` pipeline-to-batch 失敗，bash 找不到時會印出提示。

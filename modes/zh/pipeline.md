@@ -25,14 +25,18 @@ LinkedIn 或 104 有時需要登入。如果無法讀取，請使用者貼上 JD
 
 ```markdown
 ## Pending
-- [ ] https://www.104.com.tw/job/... | Company | Role
-- [ ] https://www.cakeresume.com/companies/.../jobs/... | Company | Role
+
+### 台北市大安區
+- [ ] https://www.104.com.tw/job/... | 公司名稱 | 職缺標題 | 台北市大安區 | 2026-05-11
+
+### 新北市新店區
+- [ ] https://www.cakeresume.com/companies/.../jobs/... | Company | Role | 新北市新店區 | 2026-05-10
 
 ## Processed
 - [x] #001 | URL | Company | Role | 4.2/5 | PDF yes
 ```
 
-讀取時可接受中文標題，但寫入時優先維持既有檔案風格。
+欄位順序：URL | 公司 | 職缺 | 地點 | 刊登日。`### 地區` 為分群標題，讀取時略過，只處理 `- [ ]` 項目。
 
 ## 批次摘要
 

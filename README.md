@@ -280,13 +280,6 @@ career-ops/
 
 詳細內容請參閱 [LEGAL_DISCLAIMER.md](LEGAL_DISCLAIMER.md)。本軟體依 [MIT 授權條款](LICENSE) 以「現狀」提供，不附帶任何形式的保證。
 
-## 貢獻者
-
-<a href="https://github.com/santifer/career-ops/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=santifer/career-ops" />
-</a>
-
-使用 career-ops 找到工作了嗎？[分享你的故事！](https://github.com/santifer/career-ops/issues/new?template=i-got-hired.yml)
 
 ## 授權條款
 

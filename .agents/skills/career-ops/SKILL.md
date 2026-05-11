@@ -30,6 +30,7 @@ Determine the mode from `$mode`:
 | `apply` | `apply` |
 | `scan` | `scan` |
 | `batch` | `batch` |
+| `batch104` | `batch104` |
 | `patterns` | `patterns` |
 | `followup` | `followup` |
 
@@ -61,6 +62,7 @@ Available commands:
   /career-ops apply     → Live application assistant (reads form + generates answers)
   /career-ops scan      → Scan portals and discover new offers
   /career-ops batch     → Batch processing with parallel workers
+  /career-ops batch104  → Batch evaluate 104.com.tw offers from pipeline.md
   /career-ops patterns  → Analyze rejection patterns and improve targeting
   /career-ops followup  → Follow-up cadence tracker: flag overdue, generate drafts
 
@@ -77,7 +79,7 @@ After determining the mode, load the necessary files before executing:
 ### Modes that require `_shared.md` + their mode file:
 Read `modes/_shared.md` + `modes/{mode}.md`
 
-Applies to: `auto-pipeline`, `oferta`, `ofertas`, `pdf`, `contacto`, `apply`, `pipeline`, `scan`, `batch`
+Applies to: `auto-pipeline`, `oferta`, `ofertas`, `pdf`, `contacto`, `apply`, `pipeline`, `scan`, `batch`, `batch104`
 
 ### Standalone modes (only their mode file):
 Read `modes/{mode}.md`
