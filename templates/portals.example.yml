@@ -80,6 +80,8 @@ title_filter:
     # [自訂] 填入你不想看到的職缺關鍵字
     - "Junior"        # 初級職位
     - "Intern"        # 實習生
+    - "實習"          # 實習生（中文）
+    - "初階"          # 初階職位（中文）
     - ".NET"          # .NET 技術棧
     - "Java "         # Java 技術棧（注意尾部空格，避免誤擋 JavaScript）
     - "iOS"           # 原生行動開發
@@ -90,6 +92,8 @@ title_filter:
     - "Firmware"      # 韌體
     - "FPGA"          # 硬體
     - "ASIC"          # 半導體
+    - "研發替代役"
+    - "主任"
     - "Salesforce Admin"
     - "SAP "
     - "Oracle EBS"
@@ -106,6 +110,47 @@ title_filter:
     - "Principal"
     - "Lead"
     - "Head"
+
+# -- 104 Scanner filters｜104 掃描器進階篩選 --
+# Used by scan-104.mjs. Applied after title_filter.
+# 由 scan-104.mjs 使用，在 title_filter 之後套用。
+
+filter_104:
+  # 地區白名單（空陣列 = 不限）｜Allowed locations (empty = no filter)
+  allowed_locations:
+    - "台北市"
+    - "新北市"
+
+
+  # 地區黑名單｜Excluded locations
+  excluded_locations:
+    # [CUSTOMIZE] 通勤太遠的地區填在這裡
+    []
+
+  # 遠端/混合工作是否納入｜Include remote/hybrid jobs (remoteWorkType > 0)
+  include_remote: true
+
+  # 年薪下限（元）｜Minimum annual salary. 0 = no filter.
+  min_salary_annual: 0
+
+  # 是否收「面議」職缺｜Include negotiable salary jobs
+  accept_negotiable: true
+
+  # 排除特定公司（模糊比對）｜Exclude companies (fuzzy match)
+  exclude_companies:
+    # [CUSTOMIZE] 應徵過、不感興趣、或評價差的公司填在這裡
+    []
+
+  # 只收近 N 天內刊登的職缺｜Only jobs posted within N days. 0 = no filter.
+  max_age_days: 60
+
+  # 104 地區代碼（API 層面過濾，減少抓取量）｜Area codes for 104 API
+  # 6001001000 = 台北市, 6001002000 = 新北市, 6001003000 = 桃園市
+  # 6001006000 = 新竹市, 6001007000 = 新竹縣
+  # 空陣列 = 全台
+  areas:
+    - "6001001000"  # 台北市
+    - "6001002000"  # 新北市
 
 # -- Search queries｜搜尋查詢條件 --
 # Each query triggers a WebSearch. Use site: to filter by portal.

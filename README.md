@@ -129,6 +129,18 @@ career-ops 是一個具有多種模式的單一斜線指令：
 
 或者直接貼上職缺 URL 或描述 — career-ops 會自動偵測並執行完整管道。
 
+### 指令輸出位置
+
+| 指令 | 輸出位置 |
+|------|----------|
+| `/career-ops {JD}` | `reports/{###}-{company}-{date}.md`、`output/{###}-{company}.pdf`、`data/applications.md` |
+| `/career-ops scan` | 新職缺 → `data/pipeline.md`；掃描紀錄 → `data/scan-history.tsv` |
+| `/career-ops pipeline` | 同上 JD 自動管道，每筆 URL 各產一份報告與 PDF |
+| `/career-ops pdf` | `output/{###}-{company}.pdf` |
+| `/career-ops batch` | 報告 → `reports/`；追蹤暫存 → `batch/tracker-additions/` |
+| `/career-ops tracker` | 直接顯示 `data/applications.md` 摘要，不寫檔 |
+| `/career-ops deep` / `interview-prep` | `interview-prep/{company}-{role}.md` |
+
 ## 運作原理
 
 ```
@@ -150,6 +162,19 @@ career-ops 是一個具有多種模式的單一斜線指令：
   報告  PDF  追蹤
   .md  .pdf  .tsv
 ```
+
+## Skill 載入路徑
+
+career-ops 使用兩層結構來載入 Skill：
+
+```
+.claude/skills/career-ops/SKILL.md   ← Claude Code 入口（只是一個指標）
+        │ 指向
+        ▼
+.agents/skills/career-ops/SKILL.md   ← 實際的 Skill 定義檔
+```
+
+`.claude/` 裡的檔案只有一行內容，指向 `.agents/` 目錄。這樣設計是為了讓同一份 Skill 能跨 CLI 共用（Claude Code、Gemini CLI、Copilot CLI 等），而不用維護多份副本。
 
 ## 預設掃描平台
 

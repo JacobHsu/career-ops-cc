@@ -3,8 +3,10 @@ cv.md
 data/applications.md
 data/pipeline.md
 data/scan-history.tsv
+data/scan-history.md
 reports/*.md
 !reports/.gitkeep
+interview-prep/goodjob/
 output/*
 !output/.gitkeep
 batch/logs/*

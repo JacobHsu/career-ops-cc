@@ -1,170 +1,172 @@
-# Scripts Reference
+# 腳本參考手冊
 
-All scripts live in the project root as `.mjs` modules and are exposed via `npm run <name>`.
+所有腳本位於專案根目錄，為 `.mjs` 模組，透過 `npm run <名稱>` 執行。
 
-## Quick Reference
+## 快速參考
 
-| Command | Script | Purpose |
-|---------|--------|---------|
-| `npm run doctor` | `doctor.mjs` | Validate setup prerequisites |
-| `npm run verify` | `verify-pipeline.mjs` | Check pipeline data integrity |
-| `npm run normalize` | `normalize-statuses.mjs` | Fix non-canonical statuses |
-| `npm run dedup` | `dedup-tracker.mjs` | Remove duplicate tracker entries |
-| `npm run merge` | `merge-tracker.mjs` | Merge batch TSVs into applications.md |
-| `npm run pdf` | `generate-pdf.mjs` | Convert HTML to ATS-optimized PDF |
-| `npm run sync-check` | `cv-sync-check.mjs` | Validate CV/profile consistency |
-| `npm run update:check` | `update-system.mjs check` | Check for upstream updates |
-| `npm run update` | `update-system.mjs apply` | Apply upstream update |
-| `npm run rollback` | `update-system.mjs rollback` | Rollback last update |
-| `npm run liveness` | `check-liveness.mjs` | Test if job URLs are still active |
-| `npm run scan` | `scan.mjs` | Zero-token portal scanner |
+| 指令 | 腳本 | 用途 |
+|------|------|------|
+| `npm run doctor` | `doctor.mjs` | 驗證環境設定是否完整 |
+| `npm run verify` | `verify-pipeline.mjs` | 檢查 pipeline 資料完整性 |
+| `npm run normalize` | `normalize-statuses.mjs` | 修正非標準狀態值 |
+| `npm run dedup` | `dedup-tracker.mjs` | 移除追蹤表中的重複項目 |
+| `npm run merge` | `merge-tracker.mjs` | 將批次 TSV 合併進 applications.md |
+| `npm run pdf` | `generate-pdf.mjs` | 將 HTML 轉換為 ATS 最佳化 PDF |
+| `npm run sync-check` | `cv-sync-check.mjs` | 驗證 CV 與個人檔案的一致性 |
+| `npm run update:check` | `update-system.mjs check` | 檢查是否有新版本 |
+| `npm run update` | `update-system.mjs apply` | 套用新版本更新 |
+| `npm run rollback` | `update-system.mjs rollback` | 回滾上一次更新 |
+| `npm run liveness` | `check-liveness.mjs` | 檢查職缺 URL 是否仍有效 |
+| `npm run scan` | `scan.mjs` | 零 token 平台掃描器（CakeResume、Ashby、Greenhouse…）|
+| `npm run scan-104` | `scan-104.mjs` | 零 token 104.com.tw 直接 API 掃描器 |
+| `npm run goodjob` | `goodjob.mjs` | 從 goodjob.life 批次抓取面試心得與薪資概況 |
 
 ---
 
 ## doctor
 
-Validates that all prerequisites are in place: Node.js >= 18, dependencies installed, Playwright chromium, required files (`cv.md`, `config/profile.yml`, `portals.yml`), fonts directory, and auto-creates `data/`, `output/`, `reports/` if missing.
+驗證所有必要條件是否齊備：Node.js >= 18、已安裝依賴套件、Playwright Chromium、必要檔案（`cv.md`、`config/profile.yml`、`portals.yml`）、字型目錄；若 `data/`、`output/`、`reports/` 不存在則自動建立。
 
 ```bash
 npm run doctor
 ```
 
-**Exit codes:** `0` all checks passed, `1` one or more checks failed (fix messages printed).
+**退出碼：** `0` 所有檢查通過，`1` 有一項或多項失敗（會印出修復建議）。
 
 ---
 
 ## verify
 
-Health check for pipeline data integrity. Validates `data/applications.md` against seven rules: canonical statuses (per `templates/states.yml`), no duplicate company+role pairs, all report links point to existing files, scores match `X.XX/5` / `N/A` / `DUP`, rows have proper pipe-delimited format, no pending TSVs in `batch/tracker-additions/`, and no markdown bold in scores.
+Pipeline 資料完整性健康檢查。依七項規則驗證 `data/applications.md`：標準狀態值（依 `templates/states.yml`）、無重複公司+職位組合、所有報告連結指向現有檔案、分數符合 `X.XX/5` / `N/A` / `DUP` 格式、行格式正確、`batch/tracker-additions/` 無待處理 TSV、分數欄無 markdown 粗體。
 
 ```bash
 npm run verify
 ```
 
-**Exit codes:** `0` pipeline clean (zero errors), `1` errors found. Warnings (e.g. possible duplicates) do not cause a non-zero exit.
+**退出碼：** `0` pipeline 乾淨（零錯誤），`1` 有錯誤。警告（如可能重複）不會造成非零退出。
 
 ---
 
 ## normalize
 
-Maps non-canonical statuses to their canonical equivalents and strips markdown bold and dates from the status column. Aliases like `Enviada` become `Aplicado`, `CERRADA` becomes `Descartado`, etc. DUPLICADO info is moved to the notes column.
+將非標準狀態值對應至標準值，並移除狀態欄中的 markdown 粗體與日期。例如 `Enviada` 變為 `Aplicado`、`CERRADA` 變為 `Descartado`。DUPLICADO 資訊會移至備註欄。
 
 ```bash
-npm run normalize             # apply changes
-npm run normalize -- --dry-run  # preview without writing
+npm run normalize               # 套用變更
+npm run normalize -- --dry-run  # 預覽，不寫入檔案
 ```
 
-Creates a `.bak` backup of `applications.md` before writing.
+執行前會建立 `applications.md` 的 `.bak` 備份。
 
-**Exit codes:** `0` always (changes or no changes).
+**退出碼：** `0` 永遠（有無變更皆同）。
 
 ---
 
 ## dedup
 
-Removes duplicate entries from `applications.md` by grouping on normalized company name + fuzzy role match. Keeps the entry with the highest score. If a removed entry had a more advanced pipeline status, that status is promoted to the keeper.
+依正規化公司名稱 + 模糊職位比對，移除 `applications.md` 中的重複項目。保留分數最高的那筆。若被移除的項目有更進階的 pipeline 狀態，該狀態會提升至保留項目。
 
 ```bash
-npm run dedup             # apply changes
-npm run dedup -- --dry-run  # preview without writing
+npm run dedup               # 套用變更
+npm run dedup -- --dry-run  # 預覽，不寫入檔案
 ```
 
-Creates a `.bak` backup before writing.
+執行前會建立備份。
 
-**Exit codes:** `0` always.
+**退出碼：** `0` 永遠。
 
 ---
 
 ## merge
 
-Merges batch tracker additions (`batch/tracker-additions/*.tsv`) into `applications.md`. Handles 9-column TSV, 8-column TSV, and pipe-delimited markdown formats. Detects duplicates by report number, entry number, and company+role fuzzy match. Higher-scored re-evaluations update existing entries in place.
+將批次追蹤新增項目（`batch/tracker-additions/*.tsv`）合併進 `applications.md`。支援 9 欄 TSV、8 欄 TSV 及 pipe 分隔 Markdown 格式。依報告編號、項目編號及公司+職位模糊比對偵測重複。分數較高的重複評估會就地更新現有項目。
 
 ```bash
-npm run merge                 # apply merge
-npm run merge -- --dry-run    # preview without writing
-npm run merge -- --verify     # merge then run verify-pipeline
+npm run merge                 # 套用合併
+npm run merge -- --dry-run    # 預覽，不寫入檔案
+npm run merge -- --verify     # 合併後執行 verify-pipeline
 ```
 
-Processed TSVs are moved to `batch/tracker-additions/merged/`.
+已處理的 TSV 會移至 `batch/tracker-additions/merged/`。
 
-**Exit codes:** `0` success, `1` verification errors (with `--verify`).
+**退出碼：** `0` 成功，`1` 使用 `--verify` 時有驗證錯誤。
 
 ---
 
 ## pdf
 
-Renders an HTML file to a print-quality, ATS-parseable PDF via headless Chromium. Resolves font paths from `fonts/`, normalizes Unicode for ATS compatibility (em-dashes, smart quotes, zero-width characters), and reports page count and file size.
+透過無頭 Chromium 將 HTML 檔案轉換為高品質、ATS 可解析的 PDF。從 `fonts/` 解析字型路徑，正規化 Unicode 以提升 ATS 相容性（破折號、彎引號、零寬字元），並回報頁數與檔案大小。
 
 ```bash
 npm run pdf -- input.html output.pdf
-npm run pdf -- input.html output.pdf --format=letter   # US letter
-npm run pdf -- input.html output.pdf --format=a4        # A4 (default)
+npm run pdf -- input.html output.pdf --format=letter   # 美規 Letter
+npm run pdf -- input.html output.pdf --format=a4        # A4（預設）
 ```
 
-**Exit codes:** `0` PDF generated, `1` missing arguments or generation failure.
+**退出碼：** `0` PDF 產生成功，`1` 缺少參數或產生失敗。
 
 ---
 
 ## sync-check
 
-Validates that the career-ops setup is internally consistent: `cv.md` exists and is not too short, `config/profile.yml` exists with required fields, no hardcoded metrics in `modes/_shared.md` or `batch/batch-prompt.md`, and `article-digest.md` freshness (warns if older than 30 days).
+驗證 career-ops 設定的內部一致性：`cv.md` 存在且內容不過短、`config/profile.yml` 存在且含必要欄位、`modes/_shared.md` 與 `batch/batch-prompt.md` 無硬編碼指標、`article-digest.md` 新鮮度（超過 30 天會發出警告）。
 
 ```bash
 npm run sync-check
 ```
 
-**Exit codes:** `0` no errors (warnings allowed), `1` errors found.
+**退出碼：** `0` 無錯誤（允許警告），`1` 有錯誤。
 
 ---
 
 ## update:check
 
-Checks whether a newer version of career-ops is available upstream. Outputs JSON to stdout:
+檢查上游是否有新版本，輸出 JSON 至 stdout。
 
 ```bash
 npm run update:check
 ```
 
-Possible JSON responses:
+可能的 JSON 回應：
 
-| `status` | Meaning |
-|----------|---------|
-| `up-to-date` | Local version matches remote |
-| `update-available` | Newer version exists (includes `local`, `remote`, `changelog`) |
-| `dismissed` | User dismissed the update prompt |
-| `offline` | Could not reach GitHub |
+| `status` | 說明 |
+|----------|------|
+| `up-to-date` | 本地版本與遠端相同 |
+| `update-available` | 有新版本（包含 `local`、`remote`、`changelog`）|
+| `dismissed` | 使用者已略過更新提示 |
+| `offline` | 無法連線至 GitHub |
 
-**Exit codes:** `0` always.
+**退出碼：** `0` 永遠。
 
 ---
 
 ## update
 
-Applies the upstream update. Creates a backup branch (`backup-pre-update-{version}`), fetches from the canonical repo, checks out only system-layer files, runs `npm install`, and commits. User-layer files (`cv.md`, `config/profile.yml`, `data/`, etc.) are never touched.
+套用上游更新。建立備份分支（`backup-pre-update-{version}`）、從正式 repo 拉取、僅取出系統層檔案、執行 `npm install` 並提交。使用者層檔案（`cv.md`、`config/profile.yml`、`data/` 等）永遠不會被修改。
 
 ```bash
 npm run update
 ```
 
-**Exit codes:** `0` success, `1` lock conflict or safety violation.
+**退出碼：** `0` 成功，`1` 鎖定衝突或安全違規。
 
 ---
 
 ## rollback
 
-Restores system-layer files from the most recent backup branch created during an update.
+從最近一次更新建立的備份分支還原系統層檔案。
 
 ```bash
 npm run rollback
 ```
 
-**Exit codes:** `0` success, `1` no backup branch found or git error.
+**退出碼：** `0` 成功，`1` 找不到備份分支或 git 錯誤。
 
 ---
 
 ## liveness
 
-Tests whether job posting URLs are still live using headless Chromium. Detects expired patterns (e.g. "job no longer available"), HTTP 404/410, ATS redirect patterns, and apply-button presence. Supports multi-language expired patterns (English, German, French).
+使用無頭 Chromium 測試職缺 URL 是否仍然有效。偵測過期模式（如「職缺已關閉」）、HTTP 404/410、ATS 重新導向模式，以及應徵按鈕是否存在。支援多語言過期模式（英文、德文、法文）。
 
 ```bash
 npm run liveness -- https://example.com/job/123
@@ -172,18 +174,88 @@ npm run liveness -- https://a.com/job/1 https://b.com/job/2
 npm run liveness -- --file urls.txt
 ```
 
-Each URL gets a verdict: `active`, `expired`, or `uncertain` with a reason.
+每個 URL 會得到判定結果：`active`（有效）、`expired`（已過期）或 `uncertain`（不確定），並附上原因。
 
-**Exit codes:** `0` all URLs active, `1` any expired or uncertain.
+**退出碼：** `0` 所有 URL 有效，`1` 有任何過期或不確定。
 
 ---
 
 ## scan
 
-Zero-token portal scanner. Hits ATS APIs (Greenhouse, Ashby, Lever) and career pages directly — no LLM tokens consumed. Reads `portals.yml` for target companies and search queries, outputs matching listings to stdout and optionally appends to `data/pipeline.md`.
+零 token 平台掃描器。直接呼叫 ATS API（Greenhouse、Ashby、Lever）和公司職缺頁面，不消耗 LLM token。從 `portals.yml` 讀取目標公司和搜尋查詢，將符合的職缺輸出至 stdout，並選擇性附加至 `data/pipeline.md`。
 
 ```bash
 npm run scan
 ```
 
-**Exit codes:** `0` scan completed, `1` configuration error or no portals.yml found.
+**退出碼：** `0` 掃描完成，`1` 設定錯誤或找不到 portals.yml。
+
+---
+
+## scan-104
+
+零 token 104.com.tw 掃描器。直接呼叫 104 搜尋 API，不使用 Playwright 或 WebSearch token。從 `portals.yml` 的 `search_queries`（含 `104.com.tw` 的項目）讀取關鍵字，從 `filter_104` 讀取篩選設定。輸出包含地點、刊登日、遠端類型、薪資、技術標籤、公司規模、應徵人數的豐富職缺資訊，並將新結果附加至 `data/pipeline.md` 和 `data/scan-history.tsv`。
+
+```bash
+npm run scan-104                              # 完整掃描（每個關鍵字預設 5 頁）
+npm run scan-104 -- --dry-run                 # 預覽結果，不寫入任何檔案
+npm run scan-104 -- --max-pages 2             # 每個關鍵字最多 2 頁（較快）
+npm run scan-104 -- --dry-run --max-pages 1   # 快速預覽
+```
+
+**每筆職缺輸出格式：**
+```
+  + 公司名稱 | 職缺標題
+    地區 [遠端類型] | 薪資 | 刊登日 | 公司規模
+    產業類別
+    #技術標籤
+```
+
+**篩選設定**（在 `portals.yml` 的 `filter_104` 區塊設定）：
+
+| 欄位 | 說明 |
+|------|------|
+| `allowed_locations` | 地區白名單（空陣列 = 不限）|
+| `excluded_locations` | 地區黑名單 |
+| `include_remote` | 是否納入遠端/混合工作（`remoteWorkType > 0`）|
+| `min_salary_annual` | 年薪下限（`0` = 不限）|
+| `accept_negotiable` | 是否收「面議」職缺 |
+| `exclude_companies` | 排除特定公司（模糊比對）|
+| `max_age_days` | 只收近 N 天內刊登的職缺（`0` = 不限）|
+| `areas` | 104 地區代碼（API 層面過濾，減少抓取量）|
+
+**重置掃描紀錄（讓所有職缺重新被視為新的）：**
+
+刪除以下兩個檔案，下次執行時會自動重建：
+
+```
+data/pipeline.md
+data/scan-history.tsv
+```
+
+**退出碼：** `0` 掃描完成，`1` 設定錯誤。
+
+---
+
+## goodjob
+
+從 goodjob.life 批次抓取 `data/pipeline.md` 中各待處理公司的面試心得與薪資概況，輸出至 `interview-prep/goodjob/{公司名稱}.md`。快取有效期 30 天，快取存在時自動跳過，不重複請求。整個 `interview-prep/goodjob/` 目錄已加入 `.gitignore`（自動產生的快取，不進版控）。
+
+```bash
+npm run goodjob                                  # 從 pipeline.md 待處理項目批次抓取
+npm run goodjob -- --company "xxx"          # 單一公司
+npm run goodjob -- --force                       # 強制重抓（忽略快取）
+npm run goodjob -- --dry-run                     # 只列出公司清單，不抓取
+npm run goodjob -- --max-age-days 60             # 自訂快取天數（預設 30）
+```
+
+**輸出格式**（`interview-prep/goodjob-{公司}.md`）：
+- 薪資概況表（職務、月薪/年薪、金額、樣本數）
+- 最近 3 年面試心得，最多 3 筆（含結果、評分、年資、各段落內容）
+
+**摘要輸出：**
+```
+已抓取：N | 快取：K | 無法解析：M | 失敗：F
+```
+
+**退出碼：** `0` 完成（部分失敗不影響退出碼），`1` 致命錯誤。

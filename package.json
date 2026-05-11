@@ -15,6 +15,8 @@
     "rollback": "node update-system.mjs rollback",
     "liveness": "node check-liveness.mjs",
     "scan": "node scan.mjs",
+    "scan-104": "node scan-104.mjs",
+    "goodjob": "node goodjob.mjs",
     "gemini:eval": "node gemini-eval.mjs"
   },
   "keywords": [
