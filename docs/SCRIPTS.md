@@ -20,6 +20,7 @@
 | `npm run scan` | `scan.mjs` | 零 token 平台掃描器（CakeResume、Ashby、Greenhouse…）|
 | `npm run scan-104` | `scan-104.mjs` | 零 token 104.com.tw 直接 API 掃描器 |
 | `npm run goodjob` | `goodjob.mjs` | 從 goodjob.life 批次抓取面試心得與薪資概況 |
+| `npm run fetch104` | `fetch-jd.mjs` | 抓取單一 104 職缺 JD → `jds/{jobNo}.md` |
 | `npm run batch104` | `batch104.mjs` | 批次評估 pipeline.md 的 104 職缺（pipeline-to-batch + batch-runner）|
 
 ---
@@ -260,6 +261,32 @@ npm run goodjob -- --max-age-days 60             # 自訂快取天數（預設 3
 ```
 
 **退出碼：** `0` 完成（部分失敗不影響退出碼），`1` 致命錯誤。
+
+---
+
+## fetch104
+
+零 token 單一 104 職缺 JD 抓取工具。給定職缺 URL，直接呼叫 104 Job Detail API，解析工作內容、條件要求、福利制度，存為 Markdown 至 `jds/{jobNo}.md`。不使用 Playwright，不消耗 AI token。
+
+```bash
+npm run fetch104 -- https://www.104.com.tw/job/{jobNo}
+```
+
+**輸出格式**（`jds/{jobNo}.md`）：
+- 職位名稱、公司、地點、薪資、抓取日期
+- **公司簡介**：產業、員工人數、官網、品牌定位（og:description）、JD 開頭公司說明段落
+- **主要商品 / 服務項目**：摘自公司官網的核心定位句（若官網可抓取）
+- 工作內容（jobDescription）
+- 條件要求（condition）
+- 福利制度（welfare）
+
+**抓完後的下一步：**
+```
+/career-ops oferta         → 評分此職缺（貼入 local:jds/{jobNo}.md）
+/career-ops interview-prep → 面試準備
+```
+
+**退出碼：** `0` 成功，`1` URL 格式錯誤或 API 請求失敗。
 
 ---
 

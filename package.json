@@ -20,7 +20,8 @@
     "batch104": "node batch104.mjs",
     "batch104:test": "node batch104.mjs --max 1",
     "batch:reset": "node batch-reset.mjs",
-    "gemini:eval": "node gemini-eval.mjs"
+    "gemini:eval": "node gemini-eval.mjs",
+    "fetch104": "node fetch-jd.mjs"
   },
   "keywords": [
     "ai",
