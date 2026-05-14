@@ -16,12 +16,14 @@
     "liveness": "node check-liveness.mjs",
     "scan": "node scan.mjs",
     "scan-104": "node scan-104.mjs",
+    "scan-104-parttime": "node scan-104.mjs --config=portals.parttime.yml",
     "goodjob": "node goodjob.mjs",
     "batch104": "node batch104.mjs",
     "batch104:test": "node batch104.mjs --max 1",
     "batch:reset": "node batch-reset.mjs",
     "gemini:eval": "node gemini-eval.mjs",
-    "fetch104": "node fetch-jd.mjs"
+    "fetch104": "node fetch-jd.mjs",
+    "coverletter": "node coverletter.mjs"
   },
   "keywords": [
     "ai",

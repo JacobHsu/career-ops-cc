@@ -120,12 +120,28 @@ career-ops 是一個具有多種模式的單一斜線指令：
 /career-ops batch          → 批次評估多份職缺
 /career-ops tracker        → 查看應徵狀態
 /career-ops apply          → AI 協助填寫應徵表單
+/career-ops coverletter    → 產生 104 自我介紹信（繁中）
 /career-ops pipeline       → 處理待辦 URL
 /career-ops contacto       → LinkedIn 外寄訊息
 /career-ops deep           → 深度公司研究
 /career-ops training       → 評估課程/證照
 /career-ops project        → 評估作品集專案
 ```
+
+### 104 推薦信（台灣求職）
+
+針對 104 應徵頁面的「自我介紹」欄位，產生可直接複製貼上的繁體中文推薦信：
+
+```bash
+# 步驟一：抓取職缺 JD（一次性，不耗 AI token）
+npm run fetch104 -- https://www.104.com.tw/job/{jobNo}
+
+# 步驟二：在 Claude Code 互動模式產生推薦信（可即時修改）
+# 直接在對話中說：
+/career-ops coverletter {jobNo}
+```
+
+前置條件：`cv.zh.md`（繁中履歷）必須存在。詳細說明請參閱 [docs/coverletter.md](docs/coverletter.md)。
 
 或者直接貼上職缺 URL 或描述 — career-ops 會自動偵測並執行完整管道。
 

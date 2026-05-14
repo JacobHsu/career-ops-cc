@@ -1,5 +1,6 @@
 # Personal data (user fills these)
 cv.md
+cv.zh.md
 data/applications.md
 data/pipeline.md
 data/scan-history.tsv
@@ -24,9 +25,13 @@ jds/*
 writing-samples/*
 !writing-samples/README.md
 
+# Personal cover letter examples — never committed
+examples/coverletter/
+
 # User config and customization (never auto-updated)
 config/profile.yml
 portals.yml
+portals.parttime.yml
 modes/_profile.md
 .update-dismissed
 .update-lock
@@ -52,3 +57,7 @@ package-lock.json
 # Personal resume
 config/resume.pdf
 resume.pdf
+
+# Import folder — drop personal files here to be read by AI, nothing will be committed
+import/*
+!import/.gitkeep

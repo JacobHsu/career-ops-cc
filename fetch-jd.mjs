@@ -7,8 +7,8 @@
  * 公司簡介與主要商品/服務，存為 Markdown。不消耗 AI token。
  *
  * 使用方式：
- *   node fetch-jd.mjs https://www.104.com.tw/job/8snin
- *   npm run fetch104 -- https://www.104.com.tw/job/8snin
+ *   node fetch-jd.mjs https://www.104.com.tw/job/{jobNo}
+ *   npm run fetch104 -- https://www.104.com.tw/job/{jobNo}
  *
  * 輸出：jds/{jobNo}.md
  */
@@ -90,36 +90,6 @@ async function fetchJobDetail(jobNo) {
   return json.data || json;
 }
 
-// ── 104 API: industry + employee count ───────────────────────────────────────
-
-async function fetch104CompanyMeta(custNo, companyName) {
-  try {
-    const res = await doFetch(
-      `https://www.104.com.tw/jobs/search/api/jobs?mode=s&ro=0&custNo=${custNo}&expansionType=area,spec,com,job,wf,wktm`,
-      {
-        'User-Agent': USER_AGENT,
-        'Referer': `https://www.104.com.tw/jobs/search/?custNo=${custNo}`,
-        'Accept': 'application/json, */*',
-        'X-Requested-With': 'XMLHttpRequest',
-      }
-    );
-    if (!res.ok) return null;
-    const json = await res.json();
-    const allJobs = json.data || [];
-    if (!allJobs.length) return null;
-
-    const normalizedName = companyName.trim();
-    const jobs = normalizedName ? allJobs.filter(j => j.custName === normalizedName) : allJobs;
-    const source = jobs.length ? jobs[0] : allJobs[0];
-
-    return {
-      industry: source.coIndustryDesc || '',
-      employeeCount: source.employeeCount || 0,
-    };
-  } catch {
-    return null;
-  }
-}
 
 // ── Company website: intro + products/services ───────────────────────────────
 
@@ -197,17 +167,25 @@ function extractJdCompanyIntro(jobDescription) {
 
 // ── Markdown 產生 ─────────────────────────────────────────────────────────────
 
-function buildMarkdown(jobNo, data, meta104, websiteInfo) {
+function buildMarkdown(jobNo, data, websiteInfo) {
   const header = data.header || {};
   const jobDetail = data.jobDetail || {};
   const condition = data.condition || {};
   const welfare = data.welfare || {};
 
+  const industryFromApi = data.industry || '';
+  const employeesFromApi = (() => {
+    const e = String(data.employees || '').trim();
+    return e && e !== '暫不提供' ? e : '';
+  })();
+
   const title = stripHtml(header.jobName || '（職位未知）');
   const companyName = stripHtml(header.custName || '（公司未知）');
   const companyUrl = header.custUrl || '';
   const custNo = data.custNo || '';
-  const location = [jobDetail.addressRegion, jobDetail.addressArea].filter(Boolean).join(' ') || '未提供';
+  const locationParts = [jobDetail.addressRegion, jobDetail.addressArea].filter(Boolean);
+  const location = locationParts.join(' ') || '未提供';
+  const addressDetail = jobDetail.addressDetail ? jobDetail.addressDetail.trim() : '';
 
   let salary = '面議';
   if (jobDetail.salaryMin && jobDetail.salaryMax) {
@@ -225,39 +203,44 @@ function buildMarkdown(jobNo, data, meta104, websiteInfo) {
     '',
     `**職缺 URL**: https://www.104.com.tw/job/${jobNo}`,
     `**公司頁面**: ${companyUrl || `https://www.104.com.tw/company/${custNo}`}`,
-    `**地點**: ${location}`,
+    `**地點**: ${location}${addressDetail ? `（${addressDetail}）` : ''}`,
     `**薪資**: ${salary}`,
     `**抓取日期**: ${today()}`,
     '',
   ];
 
+  // ── JD 主體（優先）──
+  if (rawJobDesc) lines.push('## 工作內容', '', rawJobDesc, '');
+  if (requirement) lines.push('## 條件要求', '', requirement, '');
+  if (welfareText) lines.push('## 福利制度', '', welfareText, '');
+
   // ── 公司簡介 ──
-  const jdIntro = extractJdCompanyIntro(rawJobDesc);
+  lines.push('## 公司簡介', '');
+  if (industryFromApi) lines.push(`**產業**: ${industryFromApi}`);
+  if (employeesFromApi) lines.push(`**員工人數**: ${employeesFromApi}`);
+
+  const companyWebsite = websiteInfo?.url || '';
+  if (companyWebsite) lines.push(`**官網**: ${companyWebsite}`);
+  if (websiteInfo?.brandName) lines.push(`**品牌名稱**: ${websiteInfo.brandName}`);
+
+  lines.push('');
+
+  // 官網摘要（若有抓到）
   const siteIntro = websiteInfo?.intro || '';
-  const hasIntro = jdIntro || siteIntro || meta104?.industry;
+  const jdIntro = extractJdCompanyIntro(rawJobDesc);
+  if (siteIntro) lines.push(siteIntro, '');
+  if (jdIntro && jdIntro !== siteIntro) lines.push(jdIntro, '');
 
-  if (hasIntro) {
-    lines.push('## 公司簡介', '');
-    if (meta104?.industry) lines.push(`**產業**: ${meta104.industry}`);
-    if (meta104?.employeeCount) lines.push(`**員工人數**: ${meta104.employeeCount} 人`);
-    if (websiteInfo?.url) lines.push(`**官網**: ${websiteInfo.url}`);
-    if (websiteInfo?.brandName) lines.push(`**品牌名稱**: ${websiteInfo.brandName}`);
-    lines.push('');
-    if (siteIntro) lines.push(siteIntro, '');
-    if (jdIntro && jdIntro !== siteIntro) lines.push(jdIntro, '');
-  }
+  // 若無任何摘要，留空白區塊讓使用者自行填寫
+  if (!siteIntro && !jdIntro) lines.push('<!-- 請自行補充公司介紹 -->', '');
 
-  // ── 主要商品 / 服務項目 ──
+  // ── 主要商品 / 服務項目（官網抓到時才輸出）──
   if (websiteInfo?.contentBlocks?.length) {
     lines.push('## 主要商品 / 服務項目', '');
     lines.push('*以下摘自公司官網：*', '');
     websiteInfo.contentBlocks.forEach(b => lines.push(`- ${b}`));
     lines.push('');
   }
-
-  if (rawJobDesc) lines.push('## 工作內容', '', rawJobDesc, '');
-  if (requirement) lines.push('## 條件要求', '', requirement, '');
-  if (welfareText) lines.push('## 福利制度', '', welfareText, '');
 
   return lines.join('\n');
 }
@@ -269,7 +252,7 @@ async function main() {
 
   if (!url) {
     console.error('用法：node fetch-jd.mjs <104職缺URL>');
-    console.error('範例：node fetch-jd.mjs https://www.104.com.tw/job/8snin');
+    console.error('範例：node fetch-jd.mjs https://www.104.com.tw/job/{jobNo}');
     process.exit(1);
   }
 
@@ -290,18 +273,11 @@ async function main() {
     process.exit(1);
   }
 
-  const custNo = data.custNo || '';
   const companyName = stripHtml(data.header?.custName || '');
 
-  // 104 meta (industry + size)
-  let meta104 = null;
-  if (custNo) {
-    process.stdout.write(`公司基本資料 ... `);
-    meta104 = await fetch104CompanyMeta(custNo, companyName);
-    console.log(meta104 ? `${meta104.industry}，${meta104.employeeCount} 人` : '無法取得');
-  }
+  console.log(`產業：${data.industry || '未提供'}，員工：${data.employees || '未提供'}`);
 
-  // Company website
+  // Company website from JD text (if company includes external URL in JD)
   const allText = stripHtml(data.jobDetail?.jobDescription || '') + ' ' + (data.header?.custUrl || '');
   const siteUrls = extractUrls(allText);
   let websiteInfo = null;
@@ -313,7 +289,7 @@ async function main() {
 
   if (!existsSync(JDS_DIR)) mkdirSync(JDS_DIR, { recursive: true });
 
-  const markdown = buildMarkdown(jobNo, data, meta104, websiteInfo);
+  const markdown = buildMarkdown(jobNo, data, websiteInfo);
   const outPath = `${JDS_DIR}/${jobNo}.md`;
   writeFileSync(outPath, markdown, 'utf-8');
 

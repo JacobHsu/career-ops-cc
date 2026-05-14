@@ -16,7 +16,8 @@
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import yaml from 'js-yaml';
 
-const PORTALS_PATH = 'portals.yml';
+const configArg = process.argv.find(a => a.startsWith('--config='));
+const PORTALS_PATH = configArg ? configArg.split('=')[1] : (process.env.PORTALS_FILE || 'portals.yml');
 const SCAN_HISTORY_PATH = 'data/scan-history.tsv';
 const SCAN_HISTORY_MD_PATH = 'data/scan-history.md';
 const PIPELINE_PATH = 'data/pipeline.md';
@@ -223,7 +224,7 @@ function parseJob(raw) {
   };
 }
 
-async function fetchPage(keyword, page, areas) {
+async function fetchPage(keyword, page, areas, jobcats) {
   const params = new URLSearchParams({
     keyword,
     page: String(page),
@@ -234,6 +235,9 @@ async function fetchPage(keyword, page, areas) {
   });
   if (areas && areas.length > 0) {
     params.set('area', areas.join(','));
+  }
+  if (jobcats && jobcats.length > 0) {
+    params.set('jobcat', jobcats.join(','));
   }
 
   const controller = new AbortController();
@@ -259,7 +263,7 @@ async function fetchPage(keyword, page, areas) {
   }
 }
 
-async function scan104Keyword(keyword, maxPages, areas) {
+async function scan104Keyword(keyword, maxPages, areas, jobcats) {
   const results = [];
   const seenNos = new Set();
   let lastPage = 1;
@@ -267,7 +271,7 @@ async function scan104Keyword(keyword, maxPages, areas) {
   for (let page = 1; page <= Math.min(maxPages, lastPage === 1 && page === 1 ? 999 : lastPage); page++) {
     process.stdout.write(`  "${keyword}" page=${page}/${lastPage === 1 ? '?' : lastPage} ... `);
     try {
-      const data = await fetchPage(keyword, page, areas);
+      const data = await fetchPage(keyword, page, areas, jobcats);
       lastPage = data.lastPage;
       process.stdout.write(`${data.jobs.length} jobs\n`);
 
@@ -449,7 +453,7 @@ async function main() {
   const showSample = showSampleIdx !== -1 ? parseInt(args[showSampleIdx + 1], 10) : (dryRun ? 10 : 0);
 
   if (!existsSync(PORTALS_PATH)) {
-    console.error('Error: portals.yml not found.');
+    console.error(`Error: ${PORTALS_PATH} not found.`);
     process.exit(1);
   }
 
@@ -458,9 +462,10 @@ async function main() {
   const filter104 = buildFilter104(config.filter_104 || {});
   const keywords = extract104Keywords(config.search_queries || []);
   const areas = config.filter_104?.areas || [];
+  const jobcats = config.filter_104?.jobcats || [];
 
   if (keywords.length === 0) {
-    console.error('No enabled 104 search_queries found in portals.yml.');
+    console.error(`No enabled 104 search_queries found in ${PORTALS_PATH}.`);
     process.exit(1);
   }
 
@@ -482,7 +487,7 @@ async function main() {
 
   for (const keyword of keywords) {
     console.log(`\nKeyword: "${keyword}"`);
-    const jobs = await scan104Keyword(keyword, maxPages, areas);
+    const jobs = await scan104Keyword(keyword, maxPages, areas, jobcats);
     counters.found += jobs.length;
 
     for (const job of jobs) {

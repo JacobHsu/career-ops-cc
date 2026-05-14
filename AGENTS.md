@@ -214,6 +214,7 @@ Default modes are in `modes/` (English). Additional language-specific modes are 
 | Asks about rejection patterns or wants to improve targeting | `patterns` |
 | Asks about follow-ups or application cadence | `followup` |
 | Wants to write a cover letter / 自我介紹信 for 104 | `coverletter` |
+| Wants to diagnose or optimize their CV | `optimize` |
 
 ### CV Source of Truth
 

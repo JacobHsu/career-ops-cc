@@ -19,8 +19,10 @@
 | `npm run liveness` | `check-liveness.mjs` | 檢查職缺 URL 是否仍有效 |
 | `npm run scan` | `scan.mjs` | 零 token 平台掃描器（CakeResume、Ashby、Greenhouse…）|
 | `npm run scan-104` | `scan-104.mjs` | 零 token 104.com.tw 直接 API 掃描器 |
+| `npm run scan-104-parttime` | `scan-104.mjs` | 兼職通道，使用 `portals.parttime.yml` |
 | `npm run goodjob` | `goodjob.mjs` | 從 goodjob.life 批次抓取面試心得與薪資概況 |
 | `npm run fetch104` | `fetch-jd.mjs` | 抓取單一 104 職缺 JD → `jds/{jobNo}.md` |
+| `npm run coverletter` | `coverletter.mjs` | 產生繁中推薦信 → `output/coverletters/{jobNo}-{date}.md` |
 | `npm run batch104` | `batch104.mjs` | 批次評估 pipeline.md 的 104 職缺（pipeline-to-batch + batch-runner）|
 
 ---
@@ -224,7 +226,18 @@ npm run scan-104 -- --dry-run --max-pages 1   # 快速預覽
 | `accept_negotiable` | 是否收「面議」職缺 |
 | `exclude_companies` | 排除特定公司（模糊比對）|
 | `max_age_days` | 只收近 N 天內刊登的職缺（`0` = 不限）|
-| `areas` | 104 地區代碼（API 層面過濾，減少抓取量）|
+| `areas` | 104 地區代碼（API 層面過濾）。使用精確區碼可取代黑名單，效率更高。空陣列 = 全台。參考：[area 代碼表](https://github-wiki-see.page/m/Li732375/JobE04_spider/wiki/Payload-參數_地區（area）)。常用：`6001001000` 台北市、`6001002011` 新北市新店區、`6001002015` 新北市中和區 |
+| `jobcats` | 104 職務類別代碼（API 層面過濾）。空陣列 = 不限。參考：[jobcat 代碼表](https://github.com/Li732375/JobE04_spider/wiki/Payload-參數_職務類別（jobcat）)。常用：`2007001015` 前端工程師、`2007001017` 全端工程師、`2007001000` 軟體工程師（大類）|
+
+**兼職通道：**
+
+```bash
+npm run scan-104-parttime                              # 兼職完整掃描
+npm run scan-104-parttime -- --dry-run                 # 預覽，不寫入檔案
+npm run scan-104-parttime -- --max-pages 2             # 限制頁數
+```
+
+兼職通道使用 `portals.parttime.yml`，keyword 固定為 `兼職`，搭配 `jobcats` 在 API 層縮小範圍至前端／全端職類，避免抓到大量非技術職缺。薪資門檻（`min_monthly_salary_max`）設為 `0` 不過濾。
 
 **重置掃描紀錄（讓所有職缺重新被視為新的）：**
 
@@ -287,6 +300,33 @@ npm run fetch104 -- https://www.104.com.tw/job/{jobNo}
 ```
 
 **退出碼：** `0` 成功，`1` URL 格式錯誤或 API 請求失敗。
+
+---
+
+## coverletter
+
+給定 104 職缺 URL，結合 `cv.zh.md` 與 `jds/{jobNo}.md`，透過 `claude -p` worker 產生可直接複製貼上至 104 應徵頁面的繁中推薦信。
+
+若 `jds/{jobNo}.md` 尚未抓取，自動先執行 `fetch-jd.mjs`。
+
+```bash
+npm run coverletter -- https://www.104.com.tw/job/{jobNo}
+```
+
+**完整流程（從零到推薦信）：**
+```
+npm run scan-104                                         # 掃描職缺 → data/pipeline.md
+npm run fetch104 -- https://www.104.com.tw/job/{jobNo}  # 抓 JD → jds/{jobNo}.md（可省略，coverletter 會自動執行）
+npm run coverletter -- https://www.104.com.tw/job/{jobNo}  # 產生推薦信
+```
+
+**前置條件：**
+- `cv.zh.md` 必須存在（繁中 CV）
+- `jds/{jobNo}.md` 存在則直接使用；不存在則自動觸發 `fetch-jd.mjs`
+
+**輸出：** `output/coverletters/{jobNo}-{date}.md`
+
+**退出碼：** `0` 成功，`1` 缺少 cv.zh.md、fetch-jd 失敗或 claude worker 失敗。
 
 ---
 
