@@ -15,6 +15,7 @@
 
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import yaml from 'js-yaml';
+import { chromium } from 'playwright';
 
 const configArg = process.argv.find(a => a.startsWith('--config='));
 const PORTALS_PATH = configArg ? configArg.split('=')[1] : (process.env.PORTALS_FILE || 'portals.yml');
@@ -224,43 +225,59 @@ function parseJob(raw) {
   };
 }
 
-async function fetchPage(keyword, page, areas, jobcats) {
-  const params = new URLSearchParams({
-    keyword,
-    page: String(page),
-    ro: '0',
-    order: '15',
-    asc: '0',
-    mode: 's',
-  });
-  if (areas && areas.length > 0) {
-    params.set('area', areas.join(','));
-  }
-  if (jobcats && jobcats.length > 0) {
-    params.set('jobcat', jobcats.join(','));
-  }
+let _pwBrowser = null;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+async function bootstrapBrowser() {
+  if (_pwBrowser) return;
+  process.stdout.write('啟動瀏覽器取得 104 session ... ');
+  _pwBrowser = await chromium.launch({ headless: true });
+  console.log('OK');
+}
 
+async function closeBrowser() {
+  if (_pwBrowser) { await _pwBrowser.close(); _pwBrowser = null; }
+}
+
+async function fetchViaPlaywright(keyword, page, areas, jobcats) {
+  const params = new URLSearchParams({ keyword, page: String(page), order: '15', asc: '0', ro: '0' });
+  if (areas?.length) params.set('area', areas.join(','));
+  if (jobcats?.length) params.set('jobcat', jobcats.join(','));
+  const apiUrl = `${API_URL}?${params}`;
+  const searchReferer = `${REFERER}?${params}`;
+
+  // Fresh context per keyword — no shared session state between keywords
+  const context = await _pwBrowser.newContext({ userAgent: randomUserAgent(), locale: 'zh-TW' });
+  const pw_page = await context.newPage();
   try {
-    const res = await fetch(`${API_URL}?${params}`, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': randomUserAgent(),
-        Referer: REFERER,
-        Accept: 'application/json, text/plain, */*',
-      },
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    const data = json.data || [];
-    const pagination = json.metadata?.pagination || {};
-    const lastPage = pagination.lastPage || 1;
-    return { jobs: Array.isArray(data) ? data : [], lastPage };
+    // Visit base search page to establish session cookies before calling API
+    await pw_page.goto(REFERER, { waitUntil: 'domcontentloaded', timeout: 20000 });
+
+    // Call API from within browser context: real TLS fingerprint + valid session cookies
+    const result = await pw_page.evaluate(async ({ url, referer }) => {
+      const r = await fetch(url, {
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+          'Referer': referer,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      return { status: r.status, text: await r.text() };
+    }, { url: apiUrl, referer: searchReferer });
+
+    if (result.status !== 200) throw new Error(`HTTP ${result.status}`);
+    return JSON.parse(result.text);
   } finally {
-    clearTimeout(timer);
+    await context.close().catch(() => {});
   }
+}
+
+async function fetchPage(keyword, page, areas, jobcats) {
+  const json = await fetchViaPlaywright(keyword, page, areas, jobcats);
+  const data = json.data || [];
+  const pagination = json.metadata?.pagination || {};
+  const lastPage = pagination.lastPage || 1;
+  return { jobs: Array.isArray(data) ? data : [], lastPage };
 }
 
 async function scan104Keyword(keyword, maxPages, areas, jobcats) {
@@ -457,6 +474,8 @@ async function main() {
     process.exit(1);
   }
 
+  await bootstrapBrowser();
+
   const config = parseYamlFile(PORTALS_PATH);
   const titleFilter = buildTitleFilter(config.title_filter);
   const filter104 = buildFilter104(config.filter_104 || {});
@@ -559,7 +578,6 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error('Fatal:', err.message);
-  process.exit(1);
-});
+main()
+  .catch(err => { console.error('Fatal:', err.message); process.exit(1); })
+  .finally(() => closeBrowser());

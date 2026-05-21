@@ -14,6 +14,7 @@
  */
 
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { chromium } from 'playwright';
 
 const JDS_DIR = 'jds';
 const FETCH_TIMEOUT_MS = 15_000;
@@ -70,7 +71,7 @@ async function doFetch(url, headers, timeoutMs = FETCH_TIMEOUT_MS) {
 
 // ── 104 API: JD detail ────────────────────────────────────────────────────────
 
-async function fetchJobDetail(jobNo) {
+async function fetchJobDetailApi(jobNo) {
   const res = await doFetch(
     `https://www.104.com.tw/job/ajax/content/${jobNo}`,
     {
@@ -82,12 +83,59 @@ async function fetchJobDetail(jobNo) {
     }
   );
 
-  if (!res.ok) throw new Error(`HTTP ${res.status} — 104 API 拒絕請求`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const ct = res.headers.get('content-type') || '';
-  if (!ct.includes('json')) throw new Error(`回應非 JSON（${ct}）— 104 可能已更改 API`);
+  if (!ct.includes('json')) throw new Error(`回應非 JSON（${ct}）`);
 
   const json = await res.json();
   return json.data || json;
+}
+
+// Playwright fallback: open real browser, grab cookie, then call API
+async function fetchJobDetailPlaywright(jobNo) {
+  process.stdout.write('API 被擋，改用瀏覽器抓取 ... ');
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ userAgent: USER_AGENT, locale: 'zh-TW' });
+    const page = await context.newPage();
+
+    // Visit job page to get session cookies
+    await page.goto(`https://www.104.com.tw/job/${jobNo}`, { waitUntil: 'domcontentloaded', timeout: 20000 });
+
+    const cookies = await context.cookies();
+    const cookieStr = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+
+    // Call API with real cookies
+    const apiUrl = `https://www.104.com.tw/job/ajax/content/${jobNo}`;
+    const res = await page.evaluate(async ({ url, cookie }) => {
+      const r = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Cookie': cookie,
+        },
+      });
+      return { status: r.status, text: await r.text() };
+    }, { url: apiUrl, cookie: cookieStr });
+
+    if (res.status !== 200) throw new Error(`Playwright API HTTP ${res.status}`);
+    const json = JSON.parse(res.text);
+    console.log('成功');
+    return json.data || json;
+  } finally {
+    await browser.close();
+  }
+}
+
+async function fetchJobDetail(jobNo) {
+  try {
+    return await fetchJobDetailApi(jobNo);
+  } catch (err) {
+    if (err.message.startsWith('HTTP 4') || err.message.startsWith('HTTP 5')) {
+      return await fetchJobDetailPlaywright(jobNo);
+    }
+    throw err;
+  }
 }
 
 
@@ -269,7 +317,7 @@ async function main() {
     data = await fetchJobDetail(jobNo);
   } catch (err) {
     console.error(`\n抓取失敗：${err.message}`);
-    console.error('建議：用瀏覽器開啟職缺頁，複製 JD 文字後貼入 /career-ops oferta。');
+    console.error('建議：確認 Playwright 已安裝（npx playwright install chromium），或手動複製 JD 文字後貼入 /career-ops oferta。');
     process.exit(1);
   }
 
