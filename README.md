@@ -121,6 +121,7 @@ career-ops 是一個具有多種模式的單一斜線指令：
 /career-ops tracker        → 查看應徵狀態
 /career-ops apply          → AI 協助填寫應徵表單
 /career-ops coverletter    → 產生 104 自我介紹信（繁中）
+/career-ops reviewletter   → HR 角色審稿推薦信（評分 + 修改建議）
 /career-ops pipeline       → 處理待辦 URL
 /career-ops contacto       → LinkedIn 外寄訊息
 /career-ops deep           → 深度公司研究

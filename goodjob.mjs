@@ -257,7 +257,7 @@ async function processCompany(companyName, { force, maxAgeDays }) {
     process.stdout.write(`${expIds.length} 篇 → `);
 
     // Fetch individual experiences (filter last 3 years)
-    const minYear = new Date().getFullYear() - 2;
+    const minYear = new Date().getFullYear() - 5;
     const interviews = [];
     for (const id of expIds) {
       if (interviews.length >= MAX_EXPERIENCES) break;
